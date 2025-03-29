@@ -1,7 +1,7 @@
 // Configuration
 const API_URL = 'https://api.jsonbin.io/v3/b'; // JSONBin.io API URL
 const API_KEY = '$2a$10$F1fId.oFBNUrtnDImC3MNOy6o1ecqmO.nP76OF2tpg57RMGEYMULe'; // Your JSONBin.io API key
-let BIN_ID = ''; // Will be set during initialization
+let BIN_ID = '67e81ce38a456b79667f01f3'; // Will be set during initialization
 const POLLING_INTERVAL = 5000000; // Check for updates every 5 seconds
 
 // DOM Elements
@@ -34,30 +34,7 @@ let currentEventId = null;
 let pollingInterval = null;
 
 // Initialize
-function init() {
-    // Add bin ID styles
-    addBinIdStyles();
-    
-    // Get bin ID from URL parameter or localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    const binIdParam = urlParams.get('binId');
-    
-    if (binIdParam) {
-        BIN_ID = binIdParam;
-        localStorage.setItem('jsonBinId', BIN_ID);
-        startPolling();
-    } else {
-        const storedBinId = localStorage.getItem('jsonBinId');
-        if (storedBinId) {
-            BIN_ID = storedBinId;
-            startPolling();
-        } else {
-            promptForBinId();
-        }
-    }
-    
-    setupEventListeners();
-}
+
 
 // Prompt user for bin ID
 function promptForBinId() {
