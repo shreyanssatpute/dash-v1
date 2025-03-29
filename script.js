@@ -1,6 +1,6 @@
 // Configuration
 const API_URL = 'https://api.jsonbin.io/v3/b'; // JSONBin.io API URL
-const API_KEY = '$2a$10$YOUR_API_KEY'; // Replace with your JSONBin.io API key
+const API_KEY = '$2a$10$F1fId.oFBNUrtnDImC3MNOy6o1ecqmO.nP76OF2tpg57RMGEYMULe'; // Replace with your JSONBin.io API key
 const BIN_ID = 'YOUR_BIN_ID'; // Replace with the bin ID from Website 1
 const POLLING_INTERVAL = 5000; // Check for updates every 5 seconds
 
