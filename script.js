@@ -1,8 +1,8 @@
 // Configuration
 const API_URL = 'https://api.jsonbin.io/v3/b'; // JSONBin.io API URL
-const API_KEY = '$2a$10$F1fId.oFBNUrtnDImC3MNOy6o1ecqmO.nP76OF2tpg57RMGEYMULe'; // Replace with your JSONBin.io API key
-const BIN_ID = '67e80b5f8a456b79667efb94'; // Replace with the bin ID from Website 1
-const POLLING_INTERVAL = 5000; // Check for updates every 5 seconds
+const API_KEY = '$2a$10$F1fId.oFBNUrtnDImC3MNOy6o1ecqmO.nP76OF2tpg57RMGEYMULe'; // Your JSONBin.io API key
+let BIN_ID = ''; // Will be set during initialization
+const POLLING_INTERVAL = 5000000; // Check for updates every 5 seconds
 
 // DOM Elements
 const eventsGrid = document.getElementById('events-grid');
@@ -35,15 +35,19 @@ let pollingInterval = null;
 
 // Initialize
 function init() {
-    // Get bin ID from URL parameter or prompt
+    // Add bin ID styles
+    addBinIdStyles();
+    
+    // Get bin ID from URL parameter or localStorage
     const urlParams = new URLSearchParams(window.location.search);
     const binIdParam = urlParams.get('binId');
     
     if (binIdParam) {
         BIN_ID = binIdParam;
+        localStorage.setItem('jsonBinId', BIN_ID);
         startPolling();
     } else {
-        const storedBinId = localStorage.getItem('dashboardBinId');
+        const storedBinId = localStorage.getItem('jsonBinId');
         if (storedBinId) {
             BIN_ID = storedBinId;
             startPolling();
@@ -58,12 +62,41 @@ function init() {
 // Prompt user for bin ID
 function promptForBinId() {
     const binId = prompt('Please enter the JSONBin ID from Camera Monitor:');
-    if (binId) {
-        BIN_ID = binId;
-        localStorage.setItem('dashboardBinId', binId);
-        startPolling();
+    if (binId && binId.trim()) {
+        BIN_ID = binId.trim();
+        localStorage.setItem('jsonBinId', BIN_ID);
+        
+        // Validate the bin ID
+        validateBinId();
     } else {
         setConnectionStatus(false, 'No bin ID provided');
+        setTimeout(promptForBinId, 1000); // Prompt again after a delay
+    }
+}
+
+// Validate bin ID
+async function validateBinId() {
+    try {
+        const response = await fetch(`${API_URL}/${BIN_ID}`, {
+            method: 'GET',
+            headers: {
+                'X-Master-Key': API_KEY
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Invalid bin ID');
+        }
+        
+        // Bin ID is valid
+        startPolling();
+        showNotification('Successfully connected to event data');
+    } catch (error) {
+        console.error('Error validating bin ID:', error);
+        setConnectionStatus(false, 'Invalid bin ID');
+        showNotification('Invalid bin ID. Please try again.', 'error');
+        localStorage.removeItem('jsonBinId');
+        setTimeout(promptForBinId, 1000); // Prompt again after a delay
     }
 }
 
@@ -71,6 +104,9 @@ function promptForBinId() {
 function startPolling() {
     // Initial load
     loadEvents();
+    
+    // Add bin ID display
+    addBinIdDisplay();
     
     // Set up polling interval
     pollingInterval = setInterval(loadEvents, POLLING_INTERVAL);
@@ -81,6 +117,69 @@ function startPolling() {
             loadEvents(); // Immediately load when tab becomes visible
         }
     });
+}
+
+// Add bin ID display to UI
+function addBinIdDisplay() {
+    // Create a small display for the bin ID
+    const headerLeft = document.querySelector('.header-left');
+    if (headerLeft) {
+        // Check if it already exists
+        if (document.querySelector('.bin-id-display')) {
+            return;
+        }
+        
+        const binIdDisplay = document.createElement('div');
+        binIdDisplay.className = 'bin-id-display';
+        binIdDisplay.innerHTML = `
+            <span class="bin-id-label">Bin ID:</span> 
+            <span id="bin-id-value">${BIN_ID}</span>
+        `;
+        binIdDisplay.style.marginLeft = '15px';
+        binIdDisplay.style.fontSize = '0.75rem';
+        binIdDisplay.style.opacity = '0.7';
+        binIdDisplay.style.cursor = 'pointer';
+        binIdDisplay.title = 'Click to copy Bin ID';
+        
+        // Add click to copy functionality
+        binIdDisplay.addEventListener('click', () => {
+            navigator.clipboard.writeText(BIN_ID)
+                .then(() => showNotification('Bin ID copied to clipboard'))
+                .catch(err => console.error('Could not copy text: ', err));
+        });
+        
+        headerLeft.appendChild(binIdDisplay);
+    }
+}
+
+// Add CSS for bin ID display
+function addBinIdStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .bin-id-display {
+            display: inline-flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .bin-id-display:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .bin-id-label {
+            margin-right: 5px;
+            font-weight: 500;
+        }
+        
+        #bin-id-value {
+            font-family: monospace;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Set connection status
@@ -362,13 +461,13 @@ async function deleteEventFromDatabase() {
 }
 
 // Show notification
-function showNotification(message, type = 'success') {
+function showNotification(message, type = 'success', duration = 3000) {
     notificationText.textContent = message;
     notification.className = `notification ${type} show`;
     
     setTimeout(() => {
         notification.classList.remove('show');
-    }, 3000);
+    }, duration);
 }
 
 // Setup event listeners
