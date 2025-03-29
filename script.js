@@ -2,7 +2,7 @@
 const API_URL = 'https://api.jsonbin.io/v3/b'; // JSONBin.io API URL
 const API_KEY = '$2a$10$F1fId.oFBNUrtnDImC3MNOy6o1ecqmO.nP76OF2tpg57RMGEYMULe'; // Your JSONBin.io API key
 const BIN_ID = '67e81ce38a456b79667f01f3'; // Fixed bin ID
-const POLLING_INTERVAL = 5000; // Poll every 5 seconds
+const POLLING_INTERVAL = 500000; // Poll every 5 seconds
 
 // DOM Elements
 const eventsGrid = document.getElementById('events-grid');
