@@ -2,7 +2,7 @@
 const API_URL = "https://api.jsonbin.io/v3/b" // JSONBin.io API URL
 const API_KEY = "$2a$10$F1fId.oFBNUrtnDImC3MNOy6o1ecqmO.nP76OF2tpg57RMGEYMULe" // Your JSONBin.io API key
 const BIN_ID = "67e81ce38a456b79667f01f3" // Fixed bin ID
-const POLLING_INTERVAL = 50000 // Poll every 5 seconds
+const POLLING_INTERVAL = 5000 // Poll every 5 seconds
 
 // DOM Elements
 const eventsGrid = document.getElementById("events-grid")
@@ -18,6 +18,7 @@ const modalImage = document.getElementById("modal-image")
 const modalCamera = document.getElementById("modal-camera")
 const modalTimestamp = document.getElementById("modal-timestamp")
 const modalStatus = document.getElementById("modal-status")
+const modalLocation = document.getElementById("modal-location")
 const closeModal = document.getElementById("close-modal")
 const markReviewed = document.getElementById("mark-reviewed")
 const deleteEvent = document.getElementById("delete-event")
@@ -190,27 +191,32 @@ function renderEvents(eventsToRender) {
     card.dataset.id = eventId
 
     card.innerHTML = `
-            <div class="event-image-container">
-                <img src="${imageUrl}" class="event-image" alt="Event from ${cameraName}">
-                <div class="event-actions">
-                    <button class="event-action escalate-btn" title="Escalate Event">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m19 14-7-7-7 7"/>
-                        </svg>
-                    </button>
-                    <button class="event-action delete-btn" title="Delete Event">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="event-info">
-                <div class="event-camera">${cameraName}</div>
-                <div class="event-timestamp">${timestamp}</div>
-            </div>
-        `
+    <div class="event-image-container">
+        <img src="${imageUrl}" class="event-image" alt="Event from ${cameraName}">
+        ${
+          event.location && event.location.coordinates
+            ? '<div class="location-indicator"><span class="location-dot"></span>Location detected</div>'
+            : ""
+        }
+        <div class="event-actions">
+            <button class="event-action escalate-btn" title="Escalate Event">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m19 14-7-7-7 7"/>
+                </svg>
+            </button>
+            <button class="event-action delete-btn" title="Delete Event">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="event-info">
+        <div class="event-camera">${cameraName}</div>
+        <div class="event-timestamp">${timestamp}</div>
+    </div>
+`
 
     eventsGrid.appendChild(card)
 
@@ -240,7 +246,7 @@ function renderEvents(eventsToRender) {
   })
 }
 
-// Open event modal
+// Update the openEventModal function to handle the location data better
 function openEventModal(event) {
   // Set current event ID
   currentEventId = event.id
@@ -249,18 +255,40 @@ function openEventModal(event) {
   modalImage.src = event.imageUrl || "/placeholder.svg"
   modalCamera.textContent = event.cameraName || "Unknown Camera"
   modalTimestamp.textContent = event.timestamp ? new Date(event.timestamp).toLocaleString() : "Unknown Time"
-  modalStatus.textContent = event.status || "new"
+
+  // Hide status as it's not in the screenshot
+  document.querySelector(".status-container").style.display = "none"
+
+  // Add location details if available
+  if (event.location && event.location.placeName) {
+    modalLocation.textContent = event.location.placeName
+    document.querySelector(".location-container").style.display = ""
+    document.querySelector(".divider").style.display = ""
+  } else if (event.location && event.location.coordinates) {
+    modalLocation.textContent = `${event.location.coordinates.lat.toFixed(4)}, ${event.location.coordinates.lng.toFixed(4)}`
+    document.querySelector(".location-container").style.display = ""
+    document.querySelector(".divider").style.display = ""
+  } else {
+    // If no location data, hide the location container and divider
+    document.querySelector(".location-container").style.display = "none"
+    document.querySelector(".divider").style.display = "none"
+  }
 
   // Show modal
   eventModal.classList.add("show")
-  document.body.style.overflow = "hidden" // Prevent scrolling when modal is open
+  document.body.style.overflow = "hidden"
 }
 
-// Close event modal
+// Update closeEventModal to reset visibility
 function closeEventModal() {
   eventModal.classList.remove("show")
   document.body.style.overflow = "" // Restore scrolling
   currentEventId = null
+
+  // Reset visibility of containers for next time
+  document.querySelector(".status-container").style.display = "none"
+  document.querySelector(".location-container").style.display = ""
+  document.querySelector(".divider").style.display = ""
 }
 
 // Escalate an event (mark as reviewed)
@@ -406,6 +434,26 @@ function setupEventListeners() {
   })
 }
 
-// Initialize app
-window.addEventListener("DOMContentLoaded", init)
+// Add a function to handle window resize events for better mobile experience
+function handleResize() {
+  // Adjust container heights based on window size
+  const windowHeight = window.innerHeight
+  const headerHeight = document.querySelector(".dashboard-header").offsetHeight
+  const filtersHeight = document.querySelector(".filters").offsetHeight
 
+  // Calculate available height for events container
+  const availableHeight = windowHeight - headerHeight - filtersHeight - 60 // 60px for padding
+
+  // Set minimum height for events container
+  document.querySelector(".events-container").style.minHeight = Math.max(300, availableHeight) + "px"
+}
+
+// Add resize event listener to window
+window.addEventListener("resize", handleResize)
+
+// Call handleResize on init to set initial sizes
+window.addEventListener("DOMContentLoaded", () => {
+  init()
+  // Set timeout to ensure DOM is fully loaded
+  setTimeout(handleResize, 100)
+})
