@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Event Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,36 +75,36 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Event Details</h2>
-                <div class="modal-actions">
-                    <button class="event-action escalate-btn" id="modal-escalate" title="Escalate Event">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m19 14-7-7-7 7"/>
-                        </svg>
-                    </button>
-                    <button id="close-modal" class="event-action delete-btn" title="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
+                <button id="close-modal" class="close-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="event-image-container">
                     <img id="modal-image" src="/placeholder.svg" alt="Event Image">
                 </div>
                 <div class="event-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Camera:</span>
-                        <span id="modal-camera" class="detail-value"></span>
+                    <div class="detail-row">
+                        <div class="detail-label">Camera:</div>
+                        <div id="modal-camera" class="detail-value"></div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Timestamp:</span>
-                        <span id="modal-timestamp" class="detail-value"></span>
+                    <div class="detail-row">
+                        <div class="detail-label">Timestamp:</div>
+                        <div id="modal-timestamp" class="detail-value"></div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Status:</span>
-                        <span id="modal-status" class="detail-value"></span>
+                    <!-- Add divider line here -->
+                    <div class="divider"></div>
+                    <div class="detail-row location-container">
+                        <div class="detail-label">Location:</div>
+                        <div id="modal-location" class="detail-value"></div>
+                    </div>
+                    <!-- Status row is hidden as it's not in the screenshot -->
+                    <div class="detail-row status-container" style="display: none;">
+                        <div class="detail-label">Status:</div>
+                        <div id="modal-status" class="detail-value"></div>
                     </div>
                 </div>
             </div>
@@ -122,4 +122,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
